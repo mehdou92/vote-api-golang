@@ -8,4 +8,16 @@ services:
       dockerfile: Dockerfile/go/Dockerfile
     ports: 
       - '8080:8080'
+    restart: always 
+
+  db:
+    build:
+      context: .
+      dockerfile: Dockerfile/postgres/Dockerfile
+    environment:
+      - POSTGRES_USER=mehdi
+      - POSTGRES_PASSWORD=123456789
+      - POSTGRES_DB=vote
     restart: always
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
