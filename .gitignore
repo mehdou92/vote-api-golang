@@ -1,3 +1,4 @@
 main
 .env
 /postgres-data
+.idea/

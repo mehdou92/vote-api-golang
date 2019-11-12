@@ -23,3 +23,24 @@ For test and use the project :
 
 #### Run the project 
 ``` docker-compose up ```
+
+#### Update .env
+```
+# Postgres Live
+API_SECRET=voteapi #Used when creating a JWT. It can be anything
+DB_HOST=db
+DB_DRIVER=postgres
+DB_USER=mehdi
+DB_PASSWORD=123456789
+DB_NAME=vote
+DB_PORT=5432 #Default postgres port
+
+# Postgres Test
+TestApiSecret=
+TestDbHost=
+TestDbDriver=
+TestDbUser=
+TestDbPassword=
+TestDbName=
+TestDbPort=
+```
