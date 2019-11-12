@@ -25,29 +25,29 @@ var users = []models.User{
 	},
 }
 
-var posts = []models.Post{
-	models.Post{
+var votes = []models.Vote{
+	models.Vote{
 		Title:   "Title 1",
-		Content: "Hello world 1",
+		Desc: "Hello world 1",
 	},
-	models.Post{
+	models.Vote{
 		Title:   "Title 2",
-		Content: "Hello world 2",
+		Desc: "Hello world 2",
 	},
 }
 
 func Load(db *gorm.DB) {
 
-	err := db.Debug().DropTableIfExists(&models.Post{}, &models.User{}).Error
+	err := db.Debug().DropTableIfExists(&models.Vote{}, &models.User{}).Error
 	if err != nil {
 		log.Fatalf("cannot drop table: %v", err)
 	}
-	err = db.Debug().AutoMigrate(&models.User{}, &models.Post{}).Error
+	err = db.Debug().AutoMigrate(&models.User{}, &models.Vote{}).Error
 	if err != nil {
 		log.Fatalf("cannot migrate table: %v", err)
 	}
 
-	err = db.Debug().Model(&models.Post{}).AddForeignKey("author_id", "users(id)", "cascade", "cascade").Error
+	err = db.Debug().Model(&models.Vote{}).AddForeignKey("author_id", "users(id)", "cascade", "cascade").Error
 	if err != nil {
 		log.Fatalf("attaching foreign key error: %v", err)
 	}
@@ -57,11 +57,11 @@ func Load(db *gorm.DB) {
 		if err != nil {
 			log.Fatalf("cannot seed users table: %v", err)
 		}
-		posts[i].AuthorID = users[i].ID
+		votes[i].AuthorID = users[i].ID
 
-		err = db.Debug().Model(&models.Post{}).Create(&posts[i]).Error
+		err = db.Debug().Model(&models.Vote{}).Create(&votes[i]).Error
 		if err != nil {
-			log.Fatalf("cannot seed posts table: %v", err)
+			log.Fatalf("cannot seed votes table: %v", err)
 		}
 	}
 }
