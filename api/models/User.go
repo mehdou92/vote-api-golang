@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	age "github.com/bearbin/go-age"
+
 	"github.com/badoux/checkmail"
 	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/bcrypt"
@@ -17,7 +19,7 @@ type User struct {
 	FirstName string `gorm:"size:255;not null" json:"first_name"`
 	LastName  string `gorm:"size:255;not null" json:"last_name"`
 	Email string `gorm:"size:100;not null;unique" json:"email"`
-	//DateOfBirth int `json:"date_of_birth"`
+	Dateofbirth time.Time `gorm:"type:time" json:"date_of_birth,omitempty"`
 	Password string `gorm:"size:100;not null;" json:"password"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
@@ -45,12 +47,13 @@ func (u *User) Prepare() {
 	u.FirstName = html.EscapeString(strings.TrimSpace(u.FirstName))
 	u.LastName = html.EscapeString(strings.TrimSpace(u.LastName))
 	u.Email = html.EscapeString(strings.TrimSpace(u.Email))
-	//u.DateOfBirth =
+	//u.DateOfBirth = html.EscapeString(u.Dateofbirth)
 	u.CreatedAt = time.Now()
 	u.UpdatedAt = time.Now()
 }
 
 func (u *User) Validate(action string) error {
+
 	switch strings.ToLower(action) {
 	case "update":
 		if u.FirstName == "" {
@@ -65,9 +68,9 @@ func (u *User) Validate(action string) error {
 		if u.Email == "" {
 			return errors.New("Required Email")
 		}
-		//if u.DateOfBirth == "" {
-		//	return errors.New("Required date of birth")
-		//}
+		if age.Age(u.Dateofbirth) < 18 {
+			return errors.New("User needs to be 18+")
+		}
 		if err := checkmail.ValidateFormat(u.Email); err != nil {
 			return errors.New("Invalid Email")
 		}
@@ -95,11 +98,11 @@ func (u *User) Validate(action string) error {
 		if u.Password == "" {
 			return errors.New("Required Password")
 		}
-		//if u.DateOfBirth == "" {
-		//	return errors.New("Required date of birth")
-		//}
 		if u.Email == "" {
 			return errors.New("Required Email")
+		}
+		if age.Age(u.Dateofbirth) < 18 {
+			return errors.New("User needs to be 18+")
 		}
 		if err := checkmail.ValidateFormat(u.Email); err != nil {
 			return errors.New("Invalid Email")
