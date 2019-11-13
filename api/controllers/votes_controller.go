@@ -61,9 +61,13 @@ func (server *Server) CreateVote(w http.ResponseWriter, r *http.Request) {
 		Id:voteCreated.ID, 
 		Title:voteCreated.Title, 
 		Desc:voteCreated.Desc} 
+		
 
-	w.Header().Set("Lacation", fmt.Sprintf("%s%s/%d", r.Host, r.URL.Path, voteCreated.ID))
-	responses.JSON(w, http.StatusCreated, responseData)
+	resp, err := json.Marshal(responseData)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	w.Write(resp)
 }
 
 func (server *Server) GetVotes(w http.ResponseWriter, r *http.Request) {
