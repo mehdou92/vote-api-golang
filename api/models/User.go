@@ -153,9 +153,9 @@ func (u *User) UpdateAUser(db *gorm.DB, uuid string) (*User, error) {
 	return u, nil
 }
 
-func (u *User) DeleteAUser(db *gorm.DB, uid uint32) (int64, error) {
+func (u *User) DeleteAUser(db *gorm.DB, uuid string) (int64, error) {
 
-	db = db.Debug().Model(&User{}).Where("id = ?", uid).Take(&User{}).Delete(&User{})
+	db = db.Debug().Model(&User{}).Where("uuid = ?", uuid).Take(&User{}).Delete(&User{})
 
 	if db.Error != nil {
 		return 0, db.Error

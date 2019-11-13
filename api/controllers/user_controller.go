@@ -9,7 +9,6 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/mehdou92/vote-api/api/auth"
 	"github.com/mehdou92/vote-api/api/models"
 	"github.com/mehdou92/vote-api/api/responses"
 	"github.com/mehdou92/vote-api/api/utils/formaterror"
@@ -112,28 +111,9 @@ func (server *Server) UpdateUser(w http.ResponseWriter, r *http.Request) {
 func (server *Server) DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
-
 	user := models.User{}
-
-	uid, err := strconv.ParseUint(vars["id"], 10, 32)
-	if err != nil {
-		responses.ERROR(w, http.StatusBadRequest, err)
-		return
-	}
-	tokenID, err := auth.ExtractTokenID(r)
-	if err != nil {
-		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
-		return
-	}
-	if tokenID != 0 && tokenID != uint32(uid) {
-		responses.ERROR(w, http.StatusUnauthorized, errors.New(http.StatusText(http.StatusUnauthorized)))
-		return
-	}
-	_, err = user.DeleteAUser(server.DB, uint32(uid))
-	if err != nil {
-		responses.ERROR(w, http.StatusInternalServerError, err)
-		return
-	}
-	w.Header().Set("Entity", fmt.Sprintf("%d", uid))
+	uuid := vars["id"]
+	user.DeleteAUser(server.DB, string(uuid))
+	w.Header().Set("Entity", fmt.Sprintf("%d", uuid))
 	responses.JSON(w, http.StatusNoContent, "")
 }
