@@ -2,6 +2,7 @@ package seed
 
 import (
 	"log"
+	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/mehdou92/vote-api/api/models"
@@ -9,14 +10,18 @@ import (
 
 var users = []models.User{
 	models.User{
-		Nickname: "Steven victor",
-		Email:    "steven@gmail.com",
-		Password: "password",
+		FirstName:   "Steven",
+		LastName:    "victor",
+		Email:       "steven@gmail.com",
+		Password:    "password",
+		DateOfBirth: time.Date(1959, 2, 8, 12, 0, 0, 0, time.UTC),
 	},
 	models.User{
-		Nickname: "Martin Luther",
-		Email:    "luther@gmail.com",
-		Password: "password",
+		FirstName:   "Martin",
+		LastName:    "Duck",
+		Email:       "luther@gmail.com",
+		Password:    "password",
+		DateOfBirth: time.Date(1993, 2, 8, 12, 0, 0, 0, time.UTC),
 	},
 }
 

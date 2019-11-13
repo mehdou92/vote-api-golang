@@ -9,16 +9,20 @@ import (
 
 	"github.com/badoux/checkmail"
 	"github.com/jinzhu/gorm"
+	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
-	ID        uint32    `gorm:"primary_key;auto_increment" json:"id"`
-	Nickname  string    `gorm:"size:255;not null;unique" json:"nickname"`
-	Email     string    `gorm:"size:100;not null;unique" json:"email"`
-	Password  string    `gorm:"size:100;not null;" json:"password"`
-	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
+	ID          uint32    `gorm:"primary_key;auto_increment" json:"id"`
+	UUID        string    `gorm:"unique_index"json:"uuid,omitempty"`
+	FirstName   string    `valid:"stringlength(2|50),alphanum" json:"first_name,omitempty"`
+	LastName    string    `valid:"stringlength(2|50),alphanum" json:"last_name,omitempty"`
+	Email       string    `gorm:"size:100;not null;unique" json:"email,omitempty"`
+	DateOfBirth time.Time `gorm:"type:time" json:"date_of_birth,omitempty"`
+	Password    string    `gorm:"size:100;not null;" json:"password,omitempty"`
+	CreatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
+	UpdatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
 
 func Hash(password string) ([]byte, error) {
@@ -27,6 +31,11 @@ func Hash(password string) ([]byte, error) {
 
 func VerifyPassword(hashedPassword, password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+}
+
+func (u *User) BeforeCreate(scope *gorm.Scope) {
+	scope.SetColumn("UUID", uuid.NewV4().String())
+	return
 }
 
 func (u *User) BeforeSave() error {
@@ -40,7 +49,6 @@ func (u *User) BeforeSave() error {
 
 func (u *User) Prepare() {
 	u.ID = 0
-	u.Nickname = html.EscapeString(strings.TrimSpace(u.Nickname))
 	u.Email = html.EscapeString(strings.TrimSpace(u.Email))
 	u.CreatedAt = time.Now()
 	u.UpdatedAt = time.Now()
@@ -49,9 +57,6 @@ func (u *User) Prepare() {
 func (u *User) Validate(action string) error {
 	switch strings.ToLower(action) {
 	case "update":
-		if u.Nickname == "" {
-			return errors.New("Required Nickname")
-		}
 		if u.Password == "" {
 			return errors.New("Required Password")
 		}
@@ -76,9 +81,6 @@ func (u *User) Validate(action string) error {
 		return nil
 
 	default:
-		if u.Nickname == "" {
-			return errors.New("Required Nickname")
-		}
 		if u.Password == "" {
 			return errors.New("Required Password")
 		}
@@ -133,10 +135,11 @@ func (u *User) UpdateAUser(db *gorm.DB, uid uint32) (*User, error) {
 	}
 	db = db.Debug().Model(&User{}).Where("id = ?", uid).Take(&User{}).UpdateColumns(
 		map[string]interface{}{
-			"password":  u.Password,
-			"nickname":  u.Nickname,
-			"email":     u.Email,
-			"update_at": time.Now(),
+			"first_name": u.FirstName,
+			"last_name":  u.LastName,
+			"password":   u.Password,
+			"email":      u.Email,
+			"update_at":  time.Now(),
 		},
 	)
 	if db.Error != nil {
