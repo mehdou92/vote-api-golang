@@ -17,7 +17,7 @@ For building the project :
 - ``Docker  & Docker-compose``
 
 For test and use the project :
-- Tools like ``Postman`` or ``Insomnia`` or ``Curl`` :)
+- Tools like ``Voteman`` or ``Insomnia`` or ``Curl`` :)
 
 ## Utilisation
 

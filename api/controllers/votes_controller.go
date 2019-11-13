@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
-
+	"github.com/jinzhu/gorm"
 	"github.com/gorilla/mux"
 	"github.com/mehdou92/vote-api/api/auth"
 	"github.com/mehdou92/vote-api/api/models"
@@ -15,57 +15,73 @@ import (
 	"github.com/mehdou92/vote-api/api/utils/formaterror"
 )
 
-func (server *Server) CreatePost(w http.ResponseWriter, r *http.Request) {
+func (server *Server) CreateVote(w http.ResponseWriter, r *http.Request) {
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		responses.ERROR(w, http.StatusUnprocessableEntity, err)
 		return
 	}
-	post := models.Post{}
-	err = json.Unmarshal(body, &post)
+	vote := models.Vote{}
+	err = json.Unmarshal(body, &vote)
 	if err != nil {
 		responses.ERROR(w, http.StatusUnprocessableEntity, err)
 		return
 	}
-	post.Prepare()
-	err = post.Validate()
+	vote.Prepare()
+	err = vote.Validate()
 	if err != nil {
 		responses.ERROR(w, http.StatusUnprocessableEntity, err)
 		return
 	}
 	uid, err := auth.ExtractTokenID(r)
+	if uid != 'a' {
+
+	}
 	if err != nil {
 		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
 		return
 	}
-	if uid != post.AuthorID {
-		responses.ERROR(w, http.StatusUnauthorized, errors.New(http.StatusText(http.StatusUnauthorized)))
-		return
-	}
-	postCreated, err := post.SavePost(server.DB)
+	voteCreated, err := vote.SaveVote(server.DB)
 	if err != nil {
 		formattedError := formaterror.FormatError(err.Error())
 		responses.ERROR(w, http.StatusInternalServerError, formattedError)
 		return
 	}
-	w.Header().Set("Lacation", fmt.Sprintf("%s%s/%d", r.Host, r.URL.Path, postCreated.ID))
-	responses.JSON(w, http.StatusCreated, postCreated)
+
+	type ResponseStruct struct{
+		gorm.Model
+		Id uint64 `json:id`
+		Title string `json:title`
+		Desc string `json:desc`
+	}
+
+	responseData := ResponseStruct{
+		Id:voteCreated.ID, 
+		Title:voteCreated.Title, 
+		Desc:voteCreated.Desc} 
+		
+
+	resp, err := json.Marshal(responseData)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	w.Write(resp)
 }
 
-func (server *Server) GetPosts(w http.ResponseWriter, r *http.Request) {
+func (server *Server) GetVotes(w http.ResponseWriter, r *http.Request) {
 
-	post := models.Post{}
+	vote := models.Vote{}
 
-	posts, err := post.FindAllPosts(server.DB)
+	votes, err := vote.FindAllVotes(server.DB)
 	if err != nil {
 		responses.ERROR(w, http.StatusInternalServerError, err)
 		return
 	}
-	responses.JSON(w, http.StatusOK, posts)
+	responses.JSON(w, http.StatusOK, votes)
 }
 
-func (server *Server) GetPost(w http.ResponseWriter, r *http.Request) {
+func (server *Server) GetVote(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	pid, err := strconv.ParseUint(vars["id"], 10, 64)
@@ -73,21 +89,21 @@ func (server *Server) GetPost(w http.ResponseWriter, r *http.Request) {
 		responses.ERROR(w, http.StatusBadRequest, err)
 		return
 	}
-	post := models.Post{}
+	vote := models.Vote{}
 
-	postReceived, err := post.FindPostByID(server.DB, pid)
+	voteReceived, err := vote.FindVoteByID(server.DB, pid)
 	if err != nil {
 		responses.ERROR(w, http.StatusInternalServerError, err)
 		return
 	}
-	responses.JSON(w, http.StatusOK, postReceived)
+	responses.JSON(w, http.StatusOK, voteReceived)
 }
 
-func (server *Server) UpdatePost(w http.ResponseWriter, r *http.Request) {
+func (server *Server) UpdateVote(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 
-	// Check if the post id is valid
+	// Check if the vote id is valid
 	pid, err := strconv.ParseUint(vars["id"], 10, 64)
 	if err != nil {
 		responses.ERROR(w, http.StatusBadRequest, err)
@@ -96,25 +112,23 @@ func (server *Server) UpdatePost(w http.ResponseWriter, r *http.Request) {
 
 	//CHeck if the auth token is valid and  get the user id from it
 	uid, err := auth.ExtractTokenID(r)
+	if uid != 'a' {
+
+	}
 	if err != nil {
 		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
 		return
 	}
 
-	// Check if the post exist
-	post := models.Post{}
-	err = server.DB.Debug().Model(models.Post{}).Where("id = ?", pid).Take(&post).Error
+	// Check if the vote exist
+	vote := models.Vote{}
+	err = server.DB.Debug().Model(models.Vote{}).Where("id = ?", pid).Take(&vote).Error
 	if err != nil {
-		responses.ERROR(w, http.StatusNotFound, errors.New("Post not found"))
+		responses.ERROR(w, http.StatusNotFound, errors.New("Vote not found"))
 		return
 	}
 
-	// If a user attempt to update a post not belonging to him
-	if uid != post.AuthorID {
-		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
-		return
-	}
-	// Read the data posted
+	// Read the data voteed
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		responses.ERROR(w, http.StatusUnprocessableEntity, err)
@@ -122,43 +136,38 @@ func (server *Server) UpdatePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Start processing the request data
-	postUpdate := models.Post{}
-	err = json.Unmarshal(body, &postUpdate)
+	voteUpdate := models.Vote{}
+	err = json.Unmarshal(body, &voteUpdate)
 	if err != nil {
 		responses.ERROR(w, http.StatusUnprocessableEntity, err)
 		return
 	}
 
-	//Also check if the request user id is equal to the one gotten from token
-	if uid != postUpdate.AuthorID {
-		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
-		return
-	}
 
-	postUpdate.Prepare()
-	err = postUpdate.Validate()
+	voteUpdate.Prepare()
+	err = voteUpdate.Validate()
 	if err != nil {
 		responses.ERROR(w, http.StatusUnprocessableEntity, err)
 		return
 	}
 
-	postUpdate.ID = post.ID //this is important to tell the model the post id to update, the other update field are set above
+	voteUpdate.ID = vote.ID //this is important to tell the model the vote id to update, the other update field are set above
 
-	postUpdated, err := postUpdate.UpdateAPost(server.DB)
+	voteUpdated, err := voteUpdate.UpdateAVote(server.DB)
 
 	if err != nil {
 		formattedError := formaterror.FormatError(err.Error())
 		responses.ERROR(w, http.StatusInternalServerError, formattedError)
 		return
 	}
-	responses.JSON(w, http.StatusOK, postUpdated)
+	responses.JSON(w, http.StatusOK, voteUpdated)
 }
 
-func (server *Server) DeletePost(w http.ResponseWriter, r *http.Request) {
+func (server *Server) DeleteVote(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 
-	// Is a valid post id given to us?
+	// Is a valid vote id given to us?
 	pid, err := strconv.ParseUint(vars["id"], 10, 64)
 	if err != nil {
 		responses.ERROR(w, http.StatusBadRequest, err)
@@ -172,20 +181,19 @@ func (server *Server) DeletePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if the post exist
-	post := models.Post{}
-	err = server.DB.Debug().Model(models.Post{}).Where("id = ?", pid).Take(&post).Error
+	// Check if the vote exist
+	vote := models.Vote{}
+	err = server.DB.Debug().Model(models.Vote{}).Where("id = ?", pid).Take(&vote).Error
 	if err != nil {
 		responses.ERROR(w, http.StatusNotFound, errors.New("Unauthorized"))
 		return
 	}
 
-	// Is the authenticated user, the owner of this post?
-	if uid != post.AuthorID {
-		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
+	// Is the authenticated user, the owner of this vote?
+	if false {
 		return
 	}
-	_, err = post.DeleteAPost(server.DB, pid, uid)
+	_, err = vote.DeleteAVote(server.DB, pid, uid)
 	if err != nil {
 		responses.ERROR(w, http.StatusBadRequest, err)
 		return

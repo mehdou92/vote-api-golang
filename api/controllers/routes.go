@@ -17,10 +17,10 @@ func (s *Server) initializeRoutes() {
 	s.Router.HandleFunc("/users/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.UpdateUser))).Methods("PUT")
 	s.Router.HandleFunc("/users/{id}", middlewares.SetMiddlewareAuthentication(s.DeleteUser)).Methods("DELETE")
 
-	//Posts routes
-	s.Router.HandleFunc("/posts", middlewares.SetMiddlewareJSON(s.CreatePost)).Methods("POST")
-	s.Router.HandleFunc("/posts", middlewares.SetMiddlewareJSON(s.GetPosts)).Methods("GET")
-	s.Router.HandleFunc("/posts/{id}", middlewares.SetMiddlewareJSON(s.GetPost)).Methods("GET")
-	s.Router.HandleFunc("/posts/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.UpdatePost))).Methods("PUT")
-	s.Router.HandleFunc("/posts/{id}", middlewares.SetMiddlewareAuthentication(s.DeletePost)).Methods("DELETE")
+	//Votes routes
+	s.Router.HandleFunc("/votes", middlewares.SetMiddlewareJSON(s.CreateVote)).Methods("POST")
+	s.Router.HandleFunc("/votes", middlewares.SetMiddlewareJSON(s.GetVotes)).Methods("GET")
+	s.Router.HandleFunc("/votes/{id}", middlewares.SetMiddlewareJSON(s.GetVote)).Methods("GET")
+	s.Router.HandleFunc("/votes/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.UpdateVote))).Methods("PUT")
+	s.Router.HandleFunc("/votes/{id}", middlewares.SetMiddlewareAuthentication(s.DeleteVote)).Methods("DELETE")
 }

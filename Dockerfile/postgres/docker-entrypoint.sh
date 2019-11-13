@@ -61,7 +61,7 @@ if [ "$1" = 'postgres' ]; then
 			export LD_PRELOAD='/usr/lib/libnss_wrapper.so'
 			export NSS_WRAPPER_PASSWD="$(mktemp)"
 			export NSS_WRAPPER_GROUP="$(mktemp)"
-			echo "postgres:x:$(id -u):$(id -g):PostgreSQL:$PGDATA:/bin/false" > "$NSS_WRAPPER_PASSWD"
+			echo "postgres:x:$(id -u):$(id -g):postgresQL:$PGDATA:/bin/false" > "$NSS_WRAPPER_PASSWD"
 			echo "postgres:x:$(id -g):" > "$NSS_WRAPPER_GROUP"
 		fi
 
@@ -99,7 +99,7 @@ if [ "$1" = 'postgres' ]; then
 				****************************************************
 				WARNING: No password has been set for the database.
 				         This will allow anyone with access to the
-				         Postgres port to access your database. In
+				         postgres port to access your database. In
 				         Docker's default configuration, this is
 				         effectively any other container on the same
 				         system.
@@ -163,7 +163,7 @@ if [ "$1" = 'postgres' ]; then
 		unset PGPASSWORD
 
 		echo
-		echo 'PostgreSQL init process complete; ready for start up.'
+		echo 'postgresQL init process complete; ready for start up.'
 		echo
 	fi
 fi
