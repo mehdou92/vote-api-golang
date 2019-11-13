@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
-
+	"github.com/jinzhu/gorm"
 	"github.com/gorilla/mux"
 	"github.com/mehdou92/vote-api/api/auth"
 	"github.com/mehdou92/vote-api/api/models"
@@ -49,8 +49,21 @@ func (server *Server) CreateVote(w http.ResponseWriter, r *http.Request) {
 		responses.ERROR(w, http.StatusInternalServerError, formattedError)
 		return
 	}
+
+	type ResponseStruct struct{
+		gorm.Model
+		Id uint64 `json:id`
+		Title string `json:title`
+		Desc string `json:desc`
+	}
+
+	responseData := ResponseStruct{
+		Id:voteCreated.ID, 
+		Title:voteCreated.Title, 
+		Desc:voteCreated.Desc} 
+
 	w.Header().Set("Lacation", fmt.Sprintf("%s%s/%d", r.Host, r.URL.Path, voteCreated.ID))
-	responses.JSON(w, http.StatusCreated, voteCreated)
+	responses.JSON(w, http.StatusCreated, responseData)
 }
 
 func (server *Server) GetVotes(w http.ResponseWriter, r *http.Request) {
