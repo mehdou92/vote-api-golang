@@ -35,12 +35,11 @@ func (server *Server) CreateVote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	uid, err := auth.ExtractTokenID(r)
+	if uid != 'a' {
+
+	}
 	if err != nil {
 		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
-		return
-	}
-	if uid != vote.AuthorID {
-		responses.ERROR(w, http.StatusUnauthorized, errors.New(http.StatusText(http.StatusUnauthorized)))
 		return
 	}
 	voteCreated, err := vote.SaveVote(server.DB)
@@ -113,6 +112,9 @@ func (server *Server) UpdateVote(w http.ResponseWriter, r *http.Request) {
 
 	//CHeck if the auth token is valid and  get the user id from it
 	uid, err := auth.ExtractTokenID(r)
+	if uid != 'a' {
+
+	}
 	if err != nil {
 		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
 		return
@@ -126,11 +128,6 @@ func (server *Server) UpdateVote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// If a user attempt to update a vote not belonging to him
-	if uid != vote.AuthorID {
-		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
-		return
-	}
 	// Read the data voteed
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -146,11 +143,6 @@ func (server *Server) UpdateVote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Also check if the request user id is equal to the one gotten from token
-	if uid != voteUpdate.AuthorID {
-		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
-		return
-	}
 
 	voteUpdate.Prepare()
 	err = voteUpdate.Validate()
@@ -198,8 +190,7 @@ func (server *Server) DeleteVote(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Is the authenticated user, the owner of this vote?
-	if uid != vote.AuthorID {
-		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
+	if false {
 		return
 	}
 	_, err = vote.DeleteAVote(server.DB, pid, uid)
